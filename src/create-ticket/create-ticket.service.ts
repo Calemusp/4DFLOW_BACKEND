@@ -11,6 +11,10 @@ import { handleStoredProcedureError } from 'src/common/utils/sql-server-error.ut
 import { TICKET } from 'src/common/4DSERVICE/entities/ticket.entity';
 import { SERVICIO } from 'src/common/4DSERVICE/entities/servicio.entity';
 import { CreateTicketDto } from './dto/create-create-ticket.dto';
+import { TicketCrearDto } from './dto/ticket-crear.dto';
+
+const TICKET_CREAR_TIPO_ORDEN = '0';
+const TICKET_CREAR_ORDEN = '0';
 
 @Injectable()
 export class CreateTicketService {
@@ -93,8 +97,30 @@ export class CreateTicketService {
       handleStoredProcedureError(error, 'Error al convertir la cita a orden');
     }
 
-  } 
- 
+  }
+
+  async ticketCreate(dto: TicketCrearDto) {
+    try {
+      const createTicket = await this.FourDServiceSource.query(
+        `EXECUTE [dbo].[TicketCrear] @servicio = @0, @Especial = @1, @tipoOrden = @2, @orden = @3`,
+        [
+          dto.service,
+          dto.especial ? 0 : 0,
+          TICKET_CREAR_TIPO_ORDEN,
+          TICKET_CREAR_ORDEN,
+        ],
+      );
+
+      const ticketId = createTicket[0]?.ticketId;
+      if (!ticketId) {
+        throw new NotFoundException('No insertó el ticket');
+      }
+
+      return await this.findTicketById(ticketId);
+    } catch (error) {
+      handleStoredProcedureError(error, 'Error al crear el ticket');
+    }
+  }
 
   async findTicketById(ticketId: number) {
     return await this.FourDServiceSource.createQueryBuilder()
