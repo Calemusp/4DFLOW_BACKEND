@@ -7,6 +7,7 @@ import { DatabaseModule } from './database/database.module';
 import { CitaModule } from './cita/cita.module';
 import { CreateTicketModule } from './create-ticket/create-ticket.module';
 import { PendingSamplesModule } from './pending-samples/pending-samples.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -18,7 +19,7 @@ import { PendingSamplesModule } from './pending-samples/pending-samples.module';
     CitaModule,
     CreateTicketModule,
     PendingSamplesModule,
-    
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],

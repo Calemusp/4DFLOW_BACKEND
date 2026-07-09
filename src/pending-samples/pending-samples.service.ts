@@ -54,7 +54,7 @@ export class PendingSamplesService {
   async currentTicket(currentTicket: number){
     return await this.FourDServiceSource
     .createQueryBuilder()
-    .select([`Serie+convert(varchar, correlativo) as Numero`])
+    .select([`Serie+convert(varchar, correlativo) as Numero, paciente`])
     .from(TICKET, 't')
     .where('Ticket = :currentTicket', {currentTicket})
     .getRawOne()

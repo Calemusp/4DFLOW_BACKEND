@@ -16,6 +16,7 @@ export function setupSwagger(app: INestApplication): void {
       'Creación de citas desde órdenes IGSS (Medi-IGSS SOAP + 4DLAB)',
     )
     .addTag('create-ticket', 'Conversión de citas a órdenes y tickets')
+    .addTag('auth', 'Inicio de sesión y ventanillas')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
