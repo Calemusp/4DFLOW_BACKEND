@@ -32,6 +32,7 @@ import {
   isDataEtiquetaConflict,
 } from './types/data-etiqueta.types';
 import { parseSpCreacionOrden4dflowResult } from './types/sp-creacion-orden.types';
+import { CreateCitaIgssBodyDto } from './dto/create-cita-igss.dto';
 
 const PROCESS_TIMEOUT_MS = 20000;
 
@@ -47,14 +48,14 @@ export class CitaService {
     private readonly igssSoapService: IgssSoapService,
   ) {}
 
-  async createFromIgssOrder(noOrden: string) {
+  async createFromIgssOrder(noOrden: string, body: CreateCitaIgssBodyDto) {
     const timeoutPromise = new Promise<never>((_, reject) => {
       setTimeout(() => reject(new Error('TIMEOUT')), PROCESS_TIMEOUT_MS);
     });
 
     try {
       return await Promise.race([
-        this.processIgssOrder(noOrden),
+        this.processIgssOrder(noOrden, body),
         timeoutPromise,
       ]);
     } catch (error: unknown) {
@@ -68,7 +69,10 @@ export class CitaService {
   }
 
 
-  private async processIgssOrder(noOrden: string) {
+  private async processIgssOrder(
+    noOrden: string,
+    { service, priority }: CreateCitaIgssBodyDto,
+  ) {
     const fecha = new Date().toISOString().slice(0, 10);
     const usuario = UsersDefault.USUARIO_DEFAULT;
     const grupo = null;
@@ -161,8 +165,11 @@ export class CitaService {
       values.push(fotoBuffer);
     }
 
+    columns.push('[service]');
+    values.push(service);
+
     columns.push('[prioridad]');
-    values.push(0);
+    values.push(priority);
 
     const placeholders = values.map((_, index) => `@${index}`);
 

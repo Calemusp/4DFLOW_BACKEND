@@ -25,6 +25,7 @@ import {
   CitaIgssReferenciaResponseDto,
   CitaIgssReimpresionResponseDto,
 } from './dto/cita-igss-response.dto';
+import { CreateCitaIgssBodyDto } from './dto/create-cita-igss.dto';
 
 @ApiTags('citas')
 @Controller('cita')
@@ -43,8 +44,12 @@ export class CitaController {
     description: 'Número de orden del servicio Medi-IGSS',
     example: '123456789',
   })
-  createFromIgss(@Param('noOrden') noOrden: string) {
-    return this.citaService.createFromIgssOrder(noOrden);
+  @ApiBody({ type: CreateCitaIgssBodyDto })
+  createFromIgss(
+    @Param('noOrden') noOrden: string,
+    @Body() body: CreateCitaIgssBodyDto,
+  ) {
+    return this.citaService.createFromIgssOrder(noOrden, body);
   }
 
   @Get('igss/consulta/:noOrden')
