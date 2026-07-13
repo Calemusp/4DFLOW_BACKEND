@@ -62,8 +62,7 @@ export class EndServiceTicketDto{
 
 
 export class printLabelsDto{
-    
-    
+     
     @ApiProperty({
         description: 'Ticket actual',
         example: 248435,
@@ -73,6 +72,38 @@ export class printLabelsDto{
 
         @ApiProperty({
         description: 'Ventanilla que imprime las etiquetas',
+        example: 8,
+    })
+    @IsNumber()
+    window!:number;
+}
+
+export class PendingListDto{
+    @ApiProperty({
+        description: 'Servicio actual',
+        example: 248435,
+    })
+    @IsNumber()
+    service!: number;
+
+        @ApiProperty({
+        description: 'Etapa actual',
+        example: 8,
+    })
+    @IsNumber()
+    stage!:number;
+}
+
+export class SkipPatientDto{
+    @ApiProperty({
+        description: 'Ticket actual',
+        example: 248435,
+    })
+    @IsNumber()
+    ticket!: number;
+
+        @ApiProperty({
+        description: 'Ventanilla actual',
         example: 8,
     })
     @IsNumber()

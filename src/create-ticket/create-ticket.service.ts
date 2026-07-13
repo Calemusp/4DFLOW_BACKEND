@@ -12,6 +12,7 @@ import { TICKET } from 'src/common/4DSERVICE/entities/ticket.entity';
 import { SERVICIO } from 'src/common/4DSERVICE/entities/servicio.entity';
 import { CreateTicketDto } from './dto/create-create-ticket.dto';
 import { TicketCrearDto } from './dto/ticket-crear.dto';
+import { TEMP_PACIENTES_IGSS } from 'src/common/4DSERVICE/entities/temp-pacientes-igss.entity';
 
 const TICKET_CREAR_TIPO_ORDEN = '0';
 const TICKET_CREAR_ORDEN = '0';
@@ -127,11 +128,14 @@ export class CreateTicketService {
       .select([
         `CONCAT(T.Serie, T.Correlativo) as numeroTicket`,
         'S.Descripcion as descripcion',
-        `Format(T.Fecha, 'dd/MM/yyyy HH:mm:ss')`,
+        `Format(T.Fecha, 'dd/MM/yyyy HH:mm:ss') as fecha`,
         'T.Paciente as paciente',
+        'tp.id_orden as idOrden',
+        't.orden'
       ])
       .from(TICKET, 'T')
       .innerJoin(SERVICIO, 'S', 'T.Servicio = S.Servicio')
+      .leftJoin(TEMP_PACIENTES_IGSS, 'tp', 'T.ticket = TP.tiket')
       .where('T.Ticket = :ticketId', { ticketId })
       .getRawOne();
   }

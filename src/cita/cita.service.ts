@@ -33,6 +33,7 @@ import {
 } from './types/data-etiqueta.types';
 import { parseSpCreacionOrden4dflowResult } from './types/sp-creacion-orden.types';
 import { CreateCitaIgssBodyDto } from './dto/create-cita-igss.dto';
+import { TEMP_PACIENTES_IGSS } from 'src/common/4DSERVICE/entities/temp-pacientes-igss.entity';
 
 const PROCESS_TIMEOUT_MS = 20000;
 
@@ -219,6 +220,8 @@ export class CitaService {
       descripcion: ticket.descripcion ?? '',
       fecha: ticket.fecha ?? '',
       paciente: ticket.paciente ?? '',
+      OrdenIGSS: ticket.OrdenIGSS ?? '',
+      OrdenLab: ticket.OrdenLab ?? '',
     };
   }
 
@@ -230,9 +233,12 @@ export class CitaService {
         'S.Descripcion as descripcion',
         `FORMAT(T.Fecha, 'dd/MM/yyyy HH:mm:ss') as fecha`,
         'T.Paciente as paciente',
+        'tp.id_orden as OrdenIGSS',
+        'T.orden as OrdenLab'
       ])
       .from(TICKET, 'T')
       .innerJoin(SERVICIO, 'S', 'T.Servicio = S.Servicio')
+      .leftJoin(TEMP_PACIENTES_IGSS, 'tp', 'T.ticket = tp.tiket')
       .where('T.tipoOrden = :tipoOrden', { tipoOrden: '1' })
       .andWhere('T.Orden = :orden', { orden: ordenCreada })
       .orderBy('T.Ticket', 'DESC')
@@ -241,6 +247,8 @@ export class CitaService {
         descripcion: string;
         fecha: string;
         paciente: string;
+        OrdenIGSS: string;
+        OrdenLab: string;
       }>();
   }
 /** 

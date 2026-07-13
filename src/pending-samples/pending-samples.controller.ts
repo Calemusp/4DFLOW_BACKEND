@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, Query, ParseIntPipe } from '@nestjs/common';
 import { PendingSamplesService } from './pending-samples.service';
-import { CallTicketDto, CreatePendingSampleDto, EndServiceTicketDto, NextPatientDto, printLabelsDto } from './dto/create-pending-sample.dto';
+import { CallTicketDto, CreatePendingSampleDto, EndServiceTicketDto, NextPatientDto, PendingListDto, printLabelsDto, SkipPatientDto } from './dto/create-pending-sample.dto';
 
 import { ApiOperation } from '@nestjs/swagger';
 
@@ -12,6 +12,12 @@ export class PendingSamplesController {
   @ApiOperation({ summary: 'Obtener los pacientes pendientes de atencion' })
   showPending(@Query() createPendingSampleDto: CreatePendingSampleDto) {
     return this.pendingSamplesService.pendingPatients(createPendingSampleDto);
+  }
+
+  @Get('pending-list')
+  @ApiOperation({ summary: 'Obtener la lista de pacientes pendientes de atencion' })
+  pendingList(@Query() pendingListDto: PendingListDto) {
+    return this.pendingSamplesService.pendingList(pendingListDto);
   }
 
   @Patch('next-patient')
@@ -48,6 +54,12 @@ export class PendingSamplesController {
   @ApiOperation({summary: 'imprimir etiquetas del paciente'})
   print(@Body() printDto: printLabelsDto){
     return this.pendingSamplesService.printLabels(printDto)
+  }
+
+  @Post('skip-patient/:ticket')
+  @ApiOperation({summary: 'saltar el paciente'})
+  skipPatient(@Body() skipPatientDto: SkipPatientDto){
+    return this.pendingSamplesService.skipPatient(skipPatientDto)
   }
 
 }

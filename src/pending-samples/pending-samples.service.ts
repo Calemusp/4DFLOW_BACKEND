@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { CallTicketDto, CreatePendingSampleDto, EndServiceTicketDto, NextPatientDto, printLabelsDto } from './dto/create-pending-sample.dto';
+import { CallTicketDto, CreatePendingSampleDto, EndServiceTicketDto, NextPatientDto, PendingListDto, printLabelsDto, SkipPatientDto } from './dto/create-pending-sample.dto';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { FOURD_SERVICE_CONNECTION } from 'src/database/database.constants';
 import { DataSource } from 'typeorm';
 import { VENTANILLA } from 'src/common/4DSERVICE/entities/ventanilla.entity';
 import { TICKET } from 'src/common/4DSERVICE/entities/ticket.entity';
+import { TEMP_PACIENTES_IGSS } from 'src/common/4DSERVICE/entities/temp-pacientes-igss.entity';
 
 @Injectable()
 export class PendingSamplesService {
@@ -54,8 +55,14 @@ export class PendingSamplesService {
   async currentTicket(currentTicket: number){
     return await this.FourDServiceSource
     .createQueryBuilder()
-    .select([`Serie+convert(varchar, correlativo) as Numero, paciente`])
+    .select([
+      `Serie+convert(varchar, correlativo) as Numero`,
+      'paciente',
+      't.orden as OrdenLab',
+      'tp.id_orden as OrdenIgss'
+    ])
     .from(TICKET, 't')
+    .leftJoin(TEMP_PACIENTES_IGSS, 'tp', 't.ticket = tp.tiket')
     .where('Ticket = :currentTicket', {currentTicket})
     .getRawOne()
   }
@@ -95,6 +102,28 @@ export class PendingSamplesService {
       `EXEC dbo.ImprimirEtiqueta
       @Ticket = @0,
       @Ventanilla = @1`,
+      [ticket, window]
+    )
+  }
+
+  async pendingList(dto: PendingListDto){
+    const {service, stage} = dto;
+
+    return await this.FourDServiceSource.query(
+      `EXEC dbo.[TicketCola]
+      @Servicio = @0,
+      @Etapa = @1`,
+      [service, stage]
+    )
+  }
+
+  async skipPatient(dto: SkipPatientDto){
+    const {ticket, window} = dto;
+    return await this.FourDServiceSource.query(
+      `EXEC dbo.[TicketRecuperar]
+      @Ticket = @0,
+      @Ventanilla = @1
+      `,
       [ticket, window]
     )
   }
