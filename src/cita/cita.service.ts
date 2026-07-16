@@ -1,4 +1,5 @@
 import {
+  ConflictException,
   HttpException,
   HttpStatus,
   Injectable,
@@ -12,7 +13,7 @@ import { CITA } from 'src/common/4DLAB/entities/cita.entity';
 import { CAT_MEDICO } from 'src/common/4DLAB/entities/cat-medico.entity';
 import { ORDEN } from 'src/common/4DLAB/entities/orden.entity';
 import { base64FotografiaToBuffer } from 'src/common/utils/fotografia.util';
-import { handleStoredProcedureError } from 'src/common/utils/sql-server-error.util';
+import { getSqlServerErrorMessage, handleStoredProcedureError } from 'src/common/utils/sql-server-error.util';
 import {
   cleanArrayValues,
   sanitizeStrings,
@@ -90,9 +91,9 @@ export class CitaService {
    //   };
    // }
 
-    console.log('noOrden', noOrden);
+    //console.log('noOrden', noOrden);
     const data = await this.igssSoapService.consultarOrden(noOrden);
-    console.log('data', data);
+    //console.log('data', data);
     
     if (isIgssOrderError(data)) {
       throw new HttpException(
@@ -174,12 +175,28 @@ export class CitaService {
 
     const placeholders = values.map((_, index) => `@${index}`);
 
+    try{
     await this.fourDLabSource.query(
       `INSERT INTO [dbo].[temp_ordenes_igss] (${columns.join(', ')})
        VALUES (${placeholders.join(', ')})`,
       values,
     );
-
+  } catch (error) {
+    const sqlMessage = getSqlServerErrorMessage(error) ?? '';
+    const isDuplicate =
+      sqlMessage.includes('UQ__temp_ord') ||
+      sqlMessage.includes('Violation of UNIQUE KEY') ||
+      sqlMessage.includes('Cannot insert duplicate key') ||
+      (error as { number?: number })?.number === 2627;
+    if (isDuplicate) {
+      throw new ConflictException({
+        statusCode: 409,
+        message: `La orden ya existe. ID Orden: ${noOrden}`,
+        codigo: 'ORDEN_YA_EXISTE',
+      });
+    }
+    handleStoredProcedureError(error, 'Error al registrar la orden temporal.');
+  }
     let spResult: unknown;
 
     try {
@@ -342,7 +359,7 @@ export class CitaService {
   private handleCreateCitaError(error: unknown): never {
     const err = error as NodeJS.ErrnoException & { message?: string };
 
-    this.logger.error('[CREATE CITA ERROR]', {
+    this.logger.error('[CREATE ORDER ERROR]', {
       message: err?.message,
       code: err?.code,
     });
