@@ -101,12 +101,13 @@ export class CreateTicketService {
   }
 
   async ticketCreate(dto: TicketCrearDto) {
+    console.log(dto);
     try {
       const createTicket = await this.FourDServiceSource.query(
         `EXECUTE [dbo].[TicketCrear] @servicio = @0, @Especial = @1, @tipoOrden = @2, @orden = @3`,
         [
           dto.service,
-          dto.especial ? 0 : 0,
+          dto.especial ? 1 : 0,
           TICKET_CREAR_TIPO_ORDEN,
           TICKET_CREAR_ORDEN,
         ],
@@ -123,19 +124,20 @@ export class CreateTicketService {
     }
   }
 
+  //! pending refactor
   async findTicketById(ticketId: number) {
     return await this.FourDServiceSource.createQueryBuilder()
       .select([
         `CONCAT(T.Serie, T.Correlativo) as numeroTicket`,
         'S.Descripcion as descripcion',
         `Format(T.Fecha, 'dd/MM/yyyy HH:mm:ss') as fecha`,
-        'T.Paciente as paciente',
-        'tp.id_orden as idOrden',
-        't.orden'
+        //'T.Paciente as paciente',
+        //'tp.id_orden as idOrden',
+        //'t.orden'
       ])
       .from(TICKET, 'T')
       .innerJoin(SERVICIO, 'S', 'T.Servicio = S.Servicio')
-      .leftJoin(TEMP_PACIENTES_IGSS, 'tp', 'T.ticket = TP.tiket')
+      //.leftJoin(TEMP_PACIENTES_IGSS, 'tp', 'T.ticket = TP.tiket')
       .where('T.Ticket = :ticketId', { ticketId })
       .getRawOne();
   }
